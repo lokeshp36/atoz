@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Speed</title>
+
+    <style>
+      #input-container {
+        display: flex;
+        justify-content: center;
+      }
+
+      #time-field {
+        display: flex;
+        justify-content: center;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="input-container">
+      <input id="input-field" type="text" />
+    </div>
+    <div id="time-field">00:00:00</div>
+  </body>
+
+  <script>
+    let prevAscii = 9999;
+    let totalTimeInMs = 0;
+    let timerId;
+    let timeField = document.getElementById("time-field");
+    let inputField = document.getElementById("input-field");
+    inputField.addEventListener("input", input);
+
+    preventInputDefaults();
+
+    function input(event) {
+      let text = event.data;
+      let ascii = text.charCodeAt(0) ?? 0;
+      if ((ascii >= 65 && ascii <= 90) || (ascii >= 96 && ascii <= 122)) {
+        if ((ascii == 65 || ascii == 97) && prevAscii == 9999) {
+          console.log("time starts");
+          timerId = setInterval(function () {
+            totalTimeInMs += 10;
+            updateTime();
+            // console.log(totalTimeInMs);
+          }, 1);
+          prevAscii = ascii;
+        } else {
+          if (ascii - prevAscii == 1) {
+            prevAscii = ascii;
+            event.preventDefault();
+            let index = ascii >= 65 && ascii <= 90 ? 65 : 97;
+            inputField.value = "";
+            for (index; index <= ascii; index++) {
+              inputField.value += String.fromCharCode(index);
+            }
+            if (ascii == 90 || ascii == 122) {
+              clearInterval(timerId);
+            }
+          } else {
+            stopInput();
+          }
+        }
+      } else {
+        stopInput();
+      }
+    }
+
+    function stopInput() {
+      inputField.value = inputField.value.slice(0, -1);
+    }
+
+    function updateTime() {
+      let mm,
+        ss,
+        ms = 00;
+      time = totalTimeInMs;
+
+      mm = parseInt(time / 60000);
+      time = time - mm * 60000;
+
+      ss = parseInt(time / 1000);
+      time = time - ss * 1000;
+
+      ms = time;
+
+      timeField.textContent = `${mm}:${ss}:${ms}`;
+    }
+
+    function preventInputDefaults() {
+      inputField.addEventListener("paste", (e) => {
+        e.preventDefault();
+        return false;
+      });
+
+      inputField.addEventListener("drop", (e) => {
+        e.preventDefault();
+        return false;
+      });
+
+      inputField.addEventListener("dragstart", (e) => {
+        e.preventDefault();
+        return false;
+      });
+
+      inputField.addEventListener("keydown", (event) => {
+        let code;
+        if (event.keyCode) code = event.keyCode;
+        else if (event.which) code = event.which;
+
+        if (code == 8 || code == 46) {
+          event.preventDefault();
+          return false;
+        }
+
+        if (code == 13) {
+          prevAscii = 9999;
+          totalTimeInMs = 0;
+          timeField.textContent = "00:00:00";
+          inputField.value = "";
+          clearInterval(timerId);
+        }
+      });
+    }
+  </script>
+</html>
